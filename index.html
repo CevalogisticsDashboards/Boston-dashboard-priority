@@ -134,10 +134,10 @@
 <body>
     <div class="dashboard">
         <div style="position: absolute; top: 2vh; right: 2vw;">
-            <img src="LogoCEVA.jpg" alt="Logo CEVA" style="height: 65px;">
+            <img src="LogoCEVA.jpg" alt="Logo CEVA" style="height: 40px;">
         </div>
         <div class="dashboard-header">
-            <h1>PAINEL DE PRIORIDADES</h1>
+            <h1>PRIORIDADES</h1>
         </div>
         <div id="lastUpdate"></div>
         <div id="nextUpdate"></div>
@@ -170,7 +170,7 @@
                     throw new Error(result.message || 'Erro ao carregar dados');
                 }
             } catch (error) {
-                showStatus(Erro: ${error.message}, 'error');
+                showStatus(`Erro: ${error.message}`, 'error');
                 console.error('Erro:', error);
             } finally {
                 toggleLoading(false);
@@ -196,7 +196,7 @@
             const todayDate = now.toLocaleDateString('pt-BR');
 
             let tableHtml = '<table><tr>';
-            columnsToDisplay.forEach(col => tableHtml += <th>${col}</th>);
+            columnsToDisplay.forEach(col => tableHtml += `<th>${col}</th>`);
             tableHtml += '</tr>';
 
             allData.forEach(row => {
@@ -213,7 +213,7 @@
                     rowClass = 'atrasado';
                 }
 
-                tableHtml += <tr class="${rowClass}">;
+                tableHtml += `<tr class="${rowClass}">`;
                 columnsToDisplay.forEach(col => {
                     let cellValue = row[col] || '';
 
@@ -230,9 +230,9 @@
                             'ATRASADO': 'status-atrasado'
                         }[cellValue] || '';
 
-                        tableHtml += <td class="${statusClass}">${cellValue}</td>;
+                        tableHtml += `<td class="${statusClass}">${cellValue}</td>`;
                     } else {
-                        tableHtml += <td>${cellValue}</td>;
+                        tableHtml += `<td>${cellValue}</td>`;
                     }
                 });
                 tableHtml += '</tr>';
@@ -244,7 +244,7 @@
 
         function updateLastUpdate() {
             const now = new Date();
-            document.getElementById('lastUpdate').textContent = Última atualização: ${now.toLocaleDateString('pt-BR')} - ${now.toLocaleTimeString('pt-BR')};
+            document.getElementById('lastUpdate').textContent = `Última atualização: ${now.toLocaleDateString('pt-BR')} - ${now.toLocaleTimeString('pt-BR')}`;
         }
 
         fetchData();
