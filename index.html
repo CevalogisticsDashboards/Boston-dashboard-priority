@@ -1,26 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- Indica o tipo de documento HTML5 para os navegadores -->
-    <title>Dashboard-Boston</title> <!-- Define o título da página que aparece na aba do navegador -->
-    <meta charset="UTF-8"> <!-- Define a codificação de caracteres para exibir corretamente acentos e outros caracteres especiais -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Faz a página se ajustar para diferentes tamanhos de tela (importante para dispositivos móveis) -->
-    
-    <!-- Link para uma biblioteca de ícones (Font Awesome) que pode ser usada no layout -->
+    <title>Dashboard-Boston</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
-    <!-- Início da seção de CSS para definir o estilo da página -->
     <style>
-        /* CSS define o estilo visual (cores, tamanhos, posições) */
-        
-        /* Define o estilo global para todos os elementos, removendo margens e preenchimentos padrão */
+        /* Estilos básicos e de layout */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
-        /* Estilo do corpo da página, incluindo fonte, cor de fundo e alinhamento do conteúdo */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
@@ -30,8 +21,6 @@
             justify-content: center;
             height: 100vh;
         }
-
-        /* Estilo da div principal da dashboard */
         .dashboard {
             position: relative;
             width: 100vw;
@@ -43,8 +32,6 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
         }
-
-        /* Estilo do cabeçalho da dashboard */
         .dashboard-header {
             text-align: center;
             margin-bottom: 2vh;
@@ -52,8 +39,6 @@
             font-size: 2.5vh;
             color: black;
         }
-
-        /* Estilos para diferentes status, como pendente, cancelado, finalizado e atrasado */
         .status-pendente {
             background-color: #FF9800;
             color: white;
@@ -61,92 +46,143 @@
             padding: 5px;
             border-radius: 4px;
         }
-
-        /* Define uma animação de "piscar" para linhas de status atrasado */
-        @keyframes blink {
-            0% { background-color: rgba(255, 0, 0, 0.1); }
-            50% { background-color: white; }
-            100% { background-color: rgba(255, 0, 0, 0.1); }
+        .status-cancelado {
+            background-color: #312f2f;
+            color: white;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
         }
-
-        /* Estilo para a tabela onde os dados serão exibidos */
+        .status-finalizado {
+            background-color: #2e8a37;
+            color: white;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .status-atrasado {
+            background-color: #d9534f;
+            color: white;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .table-container {
+            overflow-y: auto;
+            max-height: 70vh;
+            width: 100%;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 1.8vh;
         }
+        th, td {
+            padding: 1vh;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+            font-weight: 600;
+        }
+        /* Animação de piscada para linhas atrasadas */
+        @keyframes blink {
+            0% { background-color: rgba(255, 0, 0, 0.1); }
+            50% { background-color: white; }
+            100% { background-color: rgba(255, 0, 0, 0.1); }
+        }
+        tr.atrasado {
+            animation: blink 1.5s infinite;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #lastUpdate, #nextUpdate {
+            font-size: 1.5vh;
+            color: #666;
+            margin: 1vh 0;
+            text-align: left;
+        }
     </style>
 </head>
-
-<!-- Corpo do HTML, onde o conteúdo visível da página é definido -->
 <body>
     <div class="dashboard">
-        <!-- Exibe uma imagem no canto superior direito da dashboard -->
         <div style="position: absolute; top: 2vh; right: 2vw;">
-            <img src="LogoCEVA.jpg" alt="Logo CEVA" style="height: 70px;">
+            <img src="LogoCEVA.jpg" alt="Logo CEVA" style="height: 65px;">
         </div>
-
-        <!-- Cabeçalho principal da dashboard -->
         <div class="dashboard-header">
             <h1>PAINEL DE PRIORIDADES</h1>
         </div>
-
-        <!-- Elementos que mostram a última e a próxima atualização de dados -->
         <div id="lastUpdate"></div>
         <div id="nextUpdate"></div>
-
-        <!-- Container onde a tabela de dados será exibida -->
+        <div id="status" class="status"></div>
         <div class="table-container" id="tableContainer"></div>
     </div>
-
-    <!-- Div que mostra um spinner de "carregando" durante o carregamento dos dados -->
     <div id="loading" class="loading">
         <div class="loading-spinner"></div>
     </div>
 
-    <!-- Início do JavaScript para funcionalidade dinâmica da página -->
     <script>
-        // Constante com a URL da API para buscar dados
         const API_URL = 'https://script.google.com/macros/s/AKfycbwG_4QWkBGH1g2tfSNVmViLNncHFln4RDuoUYRihmnRLJ7a1-axEtRxOlfAFhVdMGQ4/exec';
-        
-        // Array para armazenar os dados recebidos da API
         let allData = [];
 
-        // Função que exibe ou esconde o spinner de carregamento
         function toggleLoading(show) {
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
-        // Função para buscar dados da API
         async function fetchData() {
             toggleLoading(true);
             try {
-                const response = await fetch(API_URL); // Busca dados da API
-                const result = await response.json(); // Converte a resposta em JSON
+                const response = await fetch(API_URL);
+                const result = await response.json();
 
                 if (result.status === 'success' && result.data) {
-                    allData = result.data; // Salva os dados na variável allData
-                    displayData(); // Exibe os dados na tabela
-                    updateLastUpdate(); // Atualiza a data/hora da última atualização
+                    allData = result.data;
+                    displayData();
+                    updateLastUpdate();
                 } else {
-                    throw new Error(result.message || 'Erro ao carregar dados'); // Exibe erro se algo deu errado
+                    throw new Error(result.message || 'Erro ao carregar dados');
                 }
             } catch (error) {
-                showStatus(`Erro: ${error.message}`, 'error'); // Exibe uma mensagem de erro
-                console.error('Erro:', error); // Loga o erro no console
+                showStatus(Erro: ${error.message}, 'error');
+                console.error('Erro:', error);
             } finally {
-                toggleLoading(false); // Esconde o spinner
+                toggleLoading(false);
             }
         }
 
-        // Função para exibir dados na tabela
         function displayData() {
             if (!allData || allData.length === 0) {
                 document.getElementById('tableContainer').innerHTML = '<p>Nenhum dado encontrado</p>';
                 return;
             }
 
-            // Definição de colunas específicas que queremos mostrar na tabela
             const columnsToDisplay = [
                 'Data solicitada',
                 'Nº da delivery',
@@ -156,32 +192,61 @@
                 'Motivo de cancelamento'
             ];
 
-            // HTML básico da tabela que contém o cabeçalho
+            const now = new Date();
+            const todayDate = now.toLocaleDateString('pt-BR');
+
             let tableHtml = '<table><tr>';
-            columnsToDisplay.forEach(col => tableHtml += `<th>${col}</th>`);
+            columnsToDisplay.forEach(col => tableHtml += <th>${col}</th>);
             tableHtml += '</tr>';
 
-            // Adiciona uma linha para cada dado da API na tabela
             allData.forEach(row => {
-                tableHtml += `<tr>`;
+                if (row['Status'] === 'FINALIZADO') return;
+
+                const corteDate = new Date(row['Data e hora do corte']);
+                const corteDateFormatted = corteDate.toLocaleDateString('pt-BR');
+                let rowClass = '';
+
+                if (row['Status'] === 'CANCELADO' && corteDateFormatted !== todayDate) return;
+
+                if (now > corteDate && row['Status'] === 'PENDENTE') {
+                    row['Status'] = 'ATRASADO';
+                    rowClass = 'atrasado';
+                }
+
+                tableHtml += <tr class="${rowClass}">;
                 columnsToDisplay.forEach(col => {
                     let cellValue = row[col] || '';
-                    tableHtml += `<td>${cellValue}</td>`;
+
+                    if (col.includes("Data") && cellValue) {
+                        let date = new Date(cellValue);
+                        cellValue = date.toLocaleDateString('pt-BR') + ' - ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
+
+                    if (col === 'Status') {
+                        const statusClass = {
+                            'PENDENTE': 'status-pendente',
+                            'CANCELADO': 'status-cancelado',
+                            'FINALIZADO': 'status-finalizado',
+                            'ATRASADO': 'status-atrasado'
+                        }[cellValue] || '';
+
+                        tableHtml += <td class="${statusClass}">${cellValue}</td>;
+                    } else {
+                        tableHtml += <td>${cellValue}</td>;
+                    }
                 });
                 tableHtml += '</tr>';
             });
 
-            // Exibe o HTML da tabela na página
+            tableHtml += '</table>';
             document.getElementById('tableContainer').innerHTML = tableHtml;
         }
 
-        // Função para atualizar o campo de última atualização
         function updateLastUpdate() {
             const now = new Date();
-            document.getElementById('lastUpdate').textContent = `Última atualização: ${now.toLocaleDateString('pt-BR')} - ${now.toLocaleTimeString('pt-BR')}`;
+            document.getElementById('lastUpdate').textContent = Última atualização: ${now.toLocaleDateString('pt-BR')} - ${now.toLocaleTimeString('pt-BR')};
         }
 
-        // Carrega dados ao abrir a página e a cada 30 segundos
         fetchData();
         setInterval(fetchData, 30000);
     </script>
