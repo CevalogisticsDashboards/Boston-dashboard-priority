@@ -123,7 +123,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        #lastUpdate, #nextUpdate {
+        #lastUpdate {
             font-size: 1.5vh;
             color: #666;
             margin: 1vh 0;
@@ -139,8 +139,7 @@
         <div class="dashboard-header">
             <h1>PAINEL DE PRIORIDADES</h1>
         </div>
-        <div id="lastUpdate"></div>
-        <div id="nextUpdate"></div>
+        <div id="lastUpdate">Última atualização: <span id="lastUpdateTime"></span></div>
         <div id="status" class="status"></div>
         <div class="table-container" id="tableContainer"></div>
     </div>
@@ -151,13 +150,14 @@
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwG_4QWkBGH1g2tfSNVmViLNncHFln4RDuoUYRihmnRLJ7a1-axEtRxOlfAFhVdMGQ4/exec';
         let allData = [];
+        let isInitialLoad = true;
 
         function toggleLoading(show) {
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
         async function fetchData() {
-            toggleLoading(true);
+            if (isInitialLoad) toggleLoading(true);
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
@@ -173,7 +173,10 @@
                 showStatus(`Erro: ${error.message}`, 'error');
                 console.error('Erro:', error);
             } finally {
-                toggleLoading(false);
+                if (isInitialLoad) {
+                    toggleLoading(false);
+                    isInitialLoad = false;
+                }
             }
         }
 
@@ -244,11 +247,20 @@
 
         function updateLastUpdate() {
             const now = new Date();
-            document.getElementById('lastUpdate').textContent = `Última atualização: ${now.toLocaleDateString('pt-BR')} - ${now.toLocaleTimeString('pt-BR')}`;
+            document.getElementById('lastUpdateTime').innerText = `${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
         }
 
-        fetchData();
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status status-${type}`;
+            setTimeout(() => {
+                statusEl.textContent = '';
+            }, 4000);
+        }
+
         setInterval(fetchData, 30000);
+        fetchData();
     </script>
 </body>
 </html>
