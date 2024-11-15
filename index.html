@@ -123,11 +123,19 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        #lastUpdate {
-            font-size: 1.5vh;
+        #clock {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Mesma fonte do título */
+            font-weight: bold; /* Fonte em negrito */
+            font-size: 4vh; /* Fonte maior */
             color: #666;
-            margin: 1vh 0;
+            margin: 2vh 0;
+            display: flex;
+            align-items: center;
             text-align: left;
+        }
+        #clock i {
+            font-size: 3.0vh; /* Tamanho do ícone ajustado para menor */
+            margin-right: 7px;
         }
     </style>
 </head>
@@ -139,8 +147,11 @@
         <div class="dashboard-header">
             <h1>PAINEL DE PRIORIDADES</h1>
         </div>
-        <div id="lastUpdate">Última atualização: <span id="lastUpdateTime"></span></div>
-        <div id="status" class="status"></div>
+        <!-- Hora em tempo real com ícone de relógio -->
+        <div id="clock">
+            <i class="fas fa-clock"></i>
+            <span id="currentTime"></span>
+        </div>
         <div class="table-container" id="tableContainer"></div>
     </div>
     <div id="loading" class="loading">
@@ -165,7 +176,6 @@
                 if (result.status === 'success' && result.data) {
                     allData = result.data;
                     displayData();
-                    updateLastUpdate();
                 } else {
                     throw new Error(result.message || 'Erro ao carregar dados');
                 }
@@ -245,22 +255,35 @@
             document.getElementById('tableContainer').innerHTML = tableHtml;
         }
 
-        function updateLastUpdate() {
-            const now = new Date();
-            document.getElementById('lastUpdateTime').innerText = `${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
-        }
+        function showStatus(message, type) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-${type}`;
+            statusDiv.textContent = message;
+            document.body.appendChild(statusDiv);
 
-        function showStatus(message, type = 'info') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status status-${type}`;
             setTimeout(() => {
-                statusEl.textContent = '';
-            }, 4000);
+                statusDiv.remove();
+            }, 5000);
         }
 
-        setInterval(fetchData, 15000);
-        fetchData();
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Atualiza a hora a cada minuto
+        setInterval(updateClock, 60000);
+
+        // Carregar dados assim que a página for carregada
+        window.onload = function () {
+            fetchData();
+            updateClock();
+        };
+        // Atualiza os dados a cada 15 segundos
+    setInterval(fetchData, 15000);  // Atualiza a cada 15 segundos
+    ;
+
     </script>
 </body>
 </html>
